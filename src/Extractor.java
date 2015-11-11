@@ -4,7 +4,6 @@ public class Extractor {
 
     private String compressedFilePath;
     private String passwordsFilePath;
-    private boolean success = false;
     private String message = "";
 
     public String getCompressedFilePath() {
@@ -21,14 +20,6 @@ public class Extractor {
 
     public void setPasswordsFilePath(String passwordsFilePath) {
         this.passwordsFilePath = passwordsFilePath;
-    }
-
-    public boolean isSuccess() {
-        return success;
-    }
-
-    private void setSuccess(boolean success) {
-        this.success = success;
     }
 
     public String getMessage() {
@@ -49,7 +40,8 @@ public class Extractor {
 
             ExtractorThread[] extractorThreads = new ExtractorThread[numThreads];
             Thread[] threads = new Thread[numThreads];
-            ObserverThread ObserverThread = new ObserverThread();
+            ObserverThread observerThread = new ObserverThread();
+            ObserverProgress observerProgress = new ObserverProgress();
 
             linesPerThread = Math.round(totalLines/numThreads);
 
@@ -70,7 +62,8 @@ public class Extractor {
                 extractorThreads[con].setSeeker(seekerCurrent);
                 extractorThreads[con].setThreadName("Thread " + con);
                 extractorThreads[con].setCompressedFilePath(this.getCompressedFilePath());
-                extractorThreads[con].addObserver(ObserverThread);
+                extractorThreads[con].addObserver(observerThread);
+                extractorThreads[con].addObserver(observerProgress);
 
                 Thread threadCurrent = new Thread(extractorThreads[con]);
                 threads[con] = threadCurrent;
@@ -80,11 +73,19 @@ public class Extractor {
                 start += linesPerThread;
             }
 
-            ObserverThread.setThreads(threads);
+            observerThread.setThreads(threads);
 
             for (con = 0; con < numThreads; con++) {
                 threads[con].start();
             }
+
+            ProgressThread progressThread = new ProgressThread();
+            progressThread.setObserverProgress(observerProgress);
+            progressThread.setObserverThread(observerThread);
+            progressThread.setTotalLines(totalLines);
+
+            Thread threadProgressOutput = new Thread(progressThread);
+            threadProgressOutput.run();
 
         } catch (IOException e) {
             this.setMessage("ERROR: " + e.getMessage());

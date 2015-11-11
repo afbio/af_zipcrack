@@ -1,4 +1,4 @@
-public class Af_zipcrack {
+public class AfZipcrack {
 
     public static final void main(String[] args) {
 

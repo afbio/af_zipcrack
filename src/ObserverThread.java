@@ -4,6 +4,7 @@ import java.util.Observer;
 public class ObserverThread implements Observer {
 
     Thread[] threads;
+    boolean passFound;
 
     public Thread[] getThreads() {
         return threads;
@@ -13,13 +14,34 @@ public class ObserverThread implements Observer {
         this.threads = threads;
     }
 
-    public void update(Observable o, Object arg) {
-        ExtractorThread extractorThread = (ExtractorThread)o;
-        ObservableArgs observableArgs = (ObservableArgs)arg;
+    public boolean isPassFound() {
+        return passFound;
+    }
 
-        if (observableArgs.isPasswordFound()) {
-            System.out.println(extractorThread.getThreadName() + " PASSWORD FOUND");
+    public void setPassFound(boolean passFound) {
+        this.passFound = passFound;
+    }
+
+    public ObserverThread() {
+        this.setPassFound(false);
+    }
+
+    public void update(Observable o, Object arg) {
+
+        if ( ! (arg instanceof ObservableThreadArgs)) {
+            return;
+        }
+
+        ExtractorThread extractorThread = (ExtractorThread)o;
+        ObservableThreadArgs observableThreadArgs = (ObservableThreadArgs)arg;
+
+        if (observableThreadArgs.getPasswordFound() != null) {
+            this.setPassFound(true);
             this.stopThreads();
+            System.out.println("###################\n###################\n");
+            System.out.println(extractorThread.getThreadName() + " PASSWORD FOUND: " + observableThreadArgs.getPasswordFound());
+
+            CommandRunner.execute(extractorThread.getCompressedFilePath(), observableThreadArgs.getPasswordFound());
         }
     }
 

@@ -1,6 +1,5 @@
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
 import java.util.Observable;
 
@@ -54,56 +53,54 @@ public class ExtractorThread extends Observable implements Runnable {
 
     public void run() {
 
-            String s, line;
-            Boolean extracted = false;
-            ObservableArgs ObserverArgs = new ObservableArgs();
+        String pass, line;
+        Boolean extracted = false;
+        ObservableThreadArgs observerArgs = new ObservableThreadArgs();
+        ObservableProgressArgs observableProgressArgs = new ObservableProgressArgs();
+        BufferedReader in;
 
-            try {
-                Runtime rt = Runtime.getRuntime();
-                int lineNumber = 0;
+        try {
+            int lineNumber = 0;
 
-                while ((s = this.getSeeker().readLine()) != null) {
+            while ((pass = this.getSeeker().readLine()) != null) {
 
-                    lineNumber++;
+                lineNumber++;
 
-                    if (Thread.currentThread().isInterrupted() == true) {
-                        break;
-                    }
+                if (Thread.currentThread().isInterrupted() == true) {
+                    break;
+                }
 
-                    if (lineNumber <= this.getLineStart()) {
-                        continue;
-                    }
+                if (lineNumber <= this.getLineStart()) {
+                    continue;
+                }
 
-                    if (lineNumber > this.getLineEnd()) {
-                        break;
-                    }
+                if (lineNumber > this.getLineEnd()) {
+                    break;
+                }
 
-                    System.out.println(this.getThreadName() + " -- Trying: " + s);
+//                System.out.println(this.getThreadName() + " -- Trying: " + pass);
+                in = CommandRunner.execute(this.getCompressedFilePath(), pass);
 
-                    Process p = rt.exec("7z x -p" + s + " -oout -y " + this.getCompressedFilePath());
-                    BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                while ((line = in.readLine()) != null) {
 
-                    while ((line = in.readLine()) != null) {
-
-                        if (line.contains("Everything is Ok")) {
-                            extracted = true;
-                            ObserverArgs.setPasswordFound(true);
-                            this.setChanged();
-                            this.notifyObservers(ObserverArgs);
-                        }
-                    }
-
-                    if (extracted) {
-                        break;
+                    if (line.contains("Everything is Ok")) {
+                        extracted = true;
+                        observerArgs.setPasswordFound(pass);
+                        this.setChanged();
+                        this.notifyObservers(observerArgs);
                     }
                 }
 
+                if (extracted) {
+                    break;
+                }
+
+                observableProgressArgs.addTriedLines();
                 this.setChanged();
-                ObserverArgs.setFinished(true);
-            } catch (IOException e) {
-                e.printStackTrace();
+                this.notifyObservers(observableProgressArgs);
             }
-
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
-
 }
