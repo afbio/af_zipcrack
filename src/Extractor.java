@@ -27,7 +27,7 @@ public class Extractor {
     }
 
     private void setMessage(String message) {
-        this.message = this.prepareMessage(message);
+        this.message = message;
     }
 
     public void execute() {
@@ -90,17 +90,6 @@ public class Extractor {
         } catch (IOException e) {
             this.setMessage("ERROR: " + e.getMessage());
         }
-    }
-
-    private String prepareMessage(String message) {
-        StringBuilder content = new StringBuilder();
-
-        content.append("\n########################");
-        content.append("\n--");
-        content.append("\n--> ");
-        content.append(message);
-
-        return content.toString();
     }
 
     private int countLines(String filename) throws IOException {

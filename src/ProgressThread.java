@@ -31,8 +31,8 @@ public class ProgressThread implements Runnable{
     public void run() {
 
         boolean showProgress = true;
-        boolean eof;
-        boolean passFound;
+        boolean eof = false;
+        boolean passFound = false;
 
         try {
             while (showProgress)  {
@@ -49,16 +49,21 @@ public class ProgressThread implements Runnable{
                     break;
                 }
 
-                this.showMessage(this.getObserverProgress().getTotalTriedLines());
+                this.showProgress(this.getObserverProgress().getTotalTriedLines());
 
                 Thread.sleep(20);
             }
+
+            if ( ! passFound) {
+                System.out.println("\n\nPassword not found!");
+            }
+
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
 
-    private void showMessage(int triedLines) {
+    private void showProgress(int triedLines) {
 
         int percentage = 0;
 
