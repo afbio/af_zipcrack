@@ -53,8 +53,6 @@ public class ExtractorThread implements Runnable {
 
     public void run() {
 
-        System.out.println("Aqui");
-
         String s, line;
         Boolean extracted = false;
 
@@ -74,7 +72,7 @@ public class ExtractorThread implements Runnable {
                     break;
                 }
 
-                System.out.println(this.getThreadName() + " -- Tentando: " + s);
+                System.out.println(this.getThreadName() + " -- Trying: " + s);
 
                 Process p = rt.exec("7z x -p" + s + " -oout -y " + this.getCompressedFilePath());
                 BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
