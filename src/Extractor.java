@@ -80,6 +80,8 @@ public class Extractor {
                 start += linesPerThread;
             }
 
+            ObserverThread.setThreads(threads);
+
             for (con = 0; con < numThreads; con++) {
                 threads[con].start();
             }

@@ -54,52 +54,56 @@ public class ExtractorThread extends Observable implements Runnable {
 
     public void run() {
 
-        String s, line;
-        Boolean extracted = false;
-        ObservableArgs ObserverArgs = new ObservableArgs();
+            String s, line;
+            Boolean extracted = false;
+            ObservableArgs ObserverArgs = new ObservableArgs();
 
-        try {
-            Runtime rt = Runtime.getRuntime();
-            int lineNumber = 0;
+            try {
+                Runtime rt = Runtime.getRuntime();
+                int lineNumber = 0;
 
-            while((s = this.getSeeker().readLine()) != null) {
+                while ((s = this.getSeeker().readLine()) != null) {
 
-                lineNumber++;
+                    lineNumber++;
 
-                if (lineNumber <= this.getLineStart()) {
-                    continue;
-                }
+                    if (Thread.currentThread().isInterrupted() == true) {
+                        break;
+                    }
 
-                if (lineNumber > this.getLineEnd()) {
-                    break;
-                }
+                    if (lineNumber <= this.getLineStart()) {
+                        continue;
+                    }
 
-                System.out.println(this.getThreadName() + " -- Trying: " + s);
+                    if (lineNumber > this.getLineEnd()) {
+                        break;
+                    }
 
-                Process p = rt.exec("7z x -p" + s + " -oout -y " + this.getCompressedFilePath());
-                BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                    System.out.println(this.getThreadName() + " -- Trying: " + s);
 
-                while ((line = in.readLine()) != null) {
-                    if (line.contains("Everything is Ok")) {
+                    Process p = rt.exec("7z x -p" + s + " -oout -y " + this.getCompressedFilePath());
+                    BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
 
+                    while ((line = in.readLine()) != null) {
 
-                        extracted = true;
+                        if (line.contains("Everything is Ok")) {
+                            extracted = true;
+                            ObserverArgs.setPasswordFound(true);
+                            this.setChanged();
+                            this.notifyObservers(ObserverArgs);
+                        }
+                    }
 
-                        ObserverArgs.setPasswordFound(true);
-                        this.setChanged();
-                        this.notifyObservers(ObserverArgs);
+                    if (extracted) {
+                        break;
                     }
                 }
 
-                if (extracted) {
-                    break;
-                }
+                this.setChanged();
+                ObserverArgs.setFinished(true);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
 
-            ObserverArgs.setFinished(true);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
 }
