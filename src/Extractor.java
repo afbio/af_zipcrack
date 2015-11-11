@@ -49,6 +49,7 @@ public class Extractor {
 
             ExtractorThread[] extractorThreads = new ExtractorThread[numThreads];
             Thread[] threads = new Thread[numThreads];
+            ObserverThread ObserverThread = new ObserverThread();
 
             linesPerThread = Math.round(totalLines/numThreads);
 
@@ -68,14 +69,15 @@ public class Extractor {
                 RandomAccessFile seekerCurrent =  new RandomAccessFile(this.getPasswordsFilePath(), "r");
                 extractorThreads[con].setSeeker(seekerCurrent);
                 extractorThreads[con].setThreadName("Thread " + con);
+                extractorThreads[con].setCompressedFilePath(this.getCompressedFilePath());
+                extractorThreads[con].addObserver(ObserverThread);
 
                 Thread threadCurrent = new Thread(extractorThreads[con]);
                 threads[con] = threadCurrent;
 
-
                 System.out.println(extractorThreads[con].getThreadName() + " From:" + extractorThreads[con].getLineStart() + " To:" + extractorThreads[con].getLineEnd());
 
-                start = start + linesPerThread;
+                start += linesPerThread;
             }
 
             for (con = 0; con < numThreads; con++) {

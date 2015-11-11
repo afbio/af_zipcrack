@@ -2,8 +2,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
+import java.util.Observable;
 
-public class ExtractorThread implements Runnable {
+public class ExtractorThread extends Observable implements Runnable {
 
     String threadName;
     RandomAccessFile seeker;
@@ -55,6 +56,7 @@ public class ExtractorThread implements Runnable {
 
         String s, line;
         Boolean extracted = false;
+        ObservableArgs ObserverArgs = new ObservableArgs();
 
         try {
             Runtime rt = Runtime.getRuntime();
@@ -79,7 +81,13 @@ public class ExtractorThread implements Runnable {
 
                 while ((line = in.readLine()) != null) {
                     if (line.contains("Everything is Ok")) {
+
+
                         extracted = true;
+
+                        ObserverArgs.setPasswordFound(true);
+                        this.setChanged();
+                        this.notifyObservers(ObserverArgs);
                     }
                 }
 
@@ -87,8 +95,11 @@ public class ExtractorThread implements Runnable {
                     break;
                 }
             }
+
+            ObserverArgs.setFinished(true);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
 }
